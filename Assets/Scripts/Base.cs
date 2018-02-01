@@ -8,19 +8,20 @@ public class Base : MonoBehaviour {
 	public GameObject pivot;
 	public GameObject token;
 	public GameObject glowPrefab;
+	public GameObject sphere;
 
-	int mapWidth = 5;
-	int mapHeight = 5;
+	// int mapWidth = 5;
+	// int mapHeight = 5;
 	static float cubeSize = 1f;
 	static float cubeHalfSize = cubeSize * 0.5f;
 
-	int[] map = {
-		1, 1, 1, 1, 1,
-		1, 0, 0, 1, 1,
-		1, 1, 0, 1, 1,
-		1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1
-		};
+	// int[] map = {
+	// 	1, 1, 1, 1, 1,
+	// 	1, 0, 0, 1, 1,
+	// 	1, 1, 0, 1, 1,
+	// 	1, 1, 1, 1, 1,
+	// 	1, 1, 1, 1, 1
+	// 	};
 
 	float posX = 0;
 	float posY = 0;
@@ -35,13 +36,14 @@ public class Base : MonoBehaviour {
 	float xRotation = 0;
 	float zRotation = 0;
 
-	float f = 0;
+	// float f = 0;
 
-	float rotX = 0;
-	float rotZ = 0;
+	// float rotX = 0;
+	// float rotZ = 0;
 
 	Vector3 lastPos;
 	Vector3 mouseDownPos;
+	bool dragLock = false;
 
 	float dragX = 0;
 	float dragZ = 0;
@@ -55,14 +57,14 @@ public class Base : MonoBehaviour {
 
 	Vector3 dragDirection;
 
-	GameObject cursor;
-	GameObject cursorEnd;
+	// GameObject cursor;
+	// GameObject cursorEnd;
 
 	Transform parent;
 
 	Vector3 rotPoint;
 	Vector3 pivotOffset;
-	
+
 	Vector3 focus;
 
 	GameObject cameraPivot;
@@ -78,13 +80,14 @@ public class Base : MonoBehaviour {
 		posX = x;
 		posY = y;
 		pivot.transform.position = parent.TransformVector(new Vector3(posX, 0, posY));
-	}	
+	}
 
 	// Use this for initialization
 	void Start () {
 		token = GameObject.FindWithTag("Token");
-		cursor = GameObject.Find("Cursor");
-		cursorEnd = GameObject.Find("CursorEnd");
+		sphere = GameObject.Find("Sphere");
+		// cursor = GameObject.Find("Cursor");
+		// cursorEnd = GameObject.Find("CursorEnd");
 		cameraPivot = GameObject.Find("CameraPivot");
 
 		parent = pivot.transform.parent;
@@ -97,12 +100,19 @@ public class Base : MonoBehaviour {
 		RotateCameraBy(-cameraRotation);
 	}
 
-	void TestPosition() {
+	bool TestPosition(float x, float z) {
 		RaycastHit hit;
-		if (Physics.Raycast(pivot.transform.position, -Vector3.up, out hit, 10f)) {
+
+		Vector3 p = new Vector3(x, 0, z);
+
+		sphere.transform.position = p;
+
+		// if (Physics.Raycast(pivot.transform.position, -Vector3.up, out hit, 10f)) {
+		if (Physics.Raycast(p, -Vector3.up, out hit, 1f)) {
+			// print(hit.transform);
 			if (hit.transform.CompareTag("Trigger")) {
 				GameObject go = hit.transform.gameObject;
-				
+
 				int value = go.GetComponent<Trigger>().value;
 				int side = 0;
 
@@ -124,11 +134,9 @@ public class Base : MonoBehaviour {
 				else if (Mathf.Round(token.transform.right.y) == 1) { // 2
 					side = 2;
 				}
-				
+
 				if (value == side) {
-					// print(side);
 					if (go.GetComponent<Trigger>().SetActive(true)) {
-						// print("hi");
 						// var glow = Instantiate(glowPrefab, parent);
 						// glow.transform.position = go.transform.position;
 
@@ -145,13 +153,17 @@ public class Base : MonoBehaviour {
 						// renderer.material.SetTextureOffset("_MainTex", new Vector2(0f, 0.5f));
 					}
 				}
+			} else if (hit.transform.CompareTag("Tile")) {
+			} else {
 			}
+			return true;
+		} else { // No tile found
 		}
+		return false;
 
 		// var triggers = GameObject.FindGameObjectsWithTag("Trigger");
 		// foreach (GameObject trigger in triggers) {
 		// 	if (trigger.transform.position.x == posX && trigger.transform.position.z == posY) {
-
 				// if (trigger.GetComponent<Trigger>().value > 0) {
 				// 	if (Mathf.Round(token.transform.up.y) == -1) {
 				// 		print("trigger1");
@@ -165,19 +177,20 @@ public class Base : MonoBehaviour {
         // }
 
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		float mx = Input.GetAxis("Mouse X");
 		float my = Input.GetAxis("Mouse Y");
 
+		// Test whether user has clicked token
 		if (Input.GetMouseButtonDown(0)) {
 			baseRotation = 0;
 
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
 
-        	if (Physics.Raycast(ray, out hit, 100)) {				
+			if (Physics.Raycast(ray, out hit, 100)) {				
 				if (hit.transform.tag == "TokenPivot" && hit.normal == Vector3.up) {
 					dx = 0;
 					dy = 0;
@@ -192,19 +205,19 @@ public class Base : MonoBehaviour {
 					target = token;
 				} else {
 					target = null;
-					
 				}
 			}
 			lastX = Input.mousePosition.x;
 			lastY = Input.mousePosition.y;
 		}
 
+		// If the left mouse button is depressed, either update the token (if selected) or rotate the view around the board
 		if (Input.GetMouseButton(0)) {
 			Vector3 v1 = (Camera.main.transform.position - new Vector3(0, Camera.main.transform.position.y, 0)).normalized;
-			GameObject.Find("Canvas/Text1").GetComponent<Text>().text = "Cam:" + v1.ToString();
+			// GameObject.Find("Canvas/Text1").GetComponent<Text>().text = "Cam:" + v1.ToString();
 
 			float angle = cameraRotation;
-			GameObject.Find("Canvas/Text2").GetComponent<Text>().text = "Deg:" + angle.ToString("n2");
+			// GameObject.Find("Canvas/Text2").GetComponent<Text>().text = "Deg:" + angle.ToString("n2");
 
 			float sin = Mathf.Sin(angle * Mathf.Deg2Rad);
 			float cos = Mathf.Cos(angle * Mathf.Deg2Rad);
@@ -213,59 +226,73 @@ public class Base : MonoBehaviour {
 			dy = dy + Input.mousePosition.y - lastY;
 
 			if (target) {
-				float cx = dx * cos - dy * sin;
-				float cy = dx * sin + dy * cos;
+				if (dragLock == false) {
+					float cx = dx * cos - dy * sin;
+					float cy = dx * sin + dy * cos;
 
-				Vector3 dir = new Vector3(cx, 0, cy).normalized;
-				GameObject.Find("Canvas/Text3").GetComponent<Text>().text = "Dir:" + dir.ToString();
+					Vector3 dir = new Vector3(cx, 0, cy).normalized;
+					// GameObject.Find("Canvas/Text3").GetComponent<Text>().text = "Dir:" + dir.ToString();
 
-				float d = Mathf.Sqrt(dx * dx + dy * dy);
+					float d = Mathf.Sqrt(dx * dx + dy * dy);
+					Vector3 temp = pivot.transform.position + dir;
 
-				if (dragX == 0 && dragZ == 0 && Mathf.Abs(d) > 5) {
-					pivotOffset = new Vector3(0, 0, 0);
-
-					if (Mathf.Abs(dir.x) > Mathf.Abs(dir.z)) {
-						dragX = dir.x > 0 ? 1 : -1;
-						if (dir.x > 0) {
-							pivotOffset = parent.transform.right * cubeHalfSize;
-						}
-						else {
-							pivotOffset = parent.transform.right * -cubeHalfSize;
-						}
-					}
-					else {
-						dragZ = dir.z > 0 ? 1 : -1;
-						if (dir.z > 0) {
-							pivotOffset = parent.transform.forward * cubeHalfSize;
-						}
-						else {
-							pivotOffset = -parent.transform.forward * cubeHalfSize;
-						}
+					if (TestPosition(temp.x, temp.z)) {
+						dragLock = false;
+					} else {
+						dragLock = true;
 					}
 
-					pivotOffset += -parent.transform.up * cubeHalfSize;
-					pivot.transform.position += pivotOffset;
-					target.transform.position -= pivotOffset;
+					if (dragX == 0 && dragZ == 0 && Mathf.Abs(d) > 5) {
 
-				} else {
-					float rx = mx * cos - my * sin;
-					float ry = mx * sin + my * cos;
+						if (dragLock == false) {
+							pivotOffset = new Vector3(0, 0, 0);
 
-					if (mx != 0 || my != 0) {
-						if (dragX != 0) {
-							zRotation += rx * 10f;
-							zRotation = dragX > 0 ? Mathf.Clamp(zRotation, 0, 90) : Mathf.Clamp(zRotation, -90, 0);
-							pivot.transform.localEulerAngles = new Vector3(0, 0, -zRotation);
+							if (Mathf.Abs(dir.x) > Mathf.Abs(dir.z)) {
+								dragX = dir.x > 0 ? 1 : -1;
+								if (dir.x > 0) {
+									pivotOffset = parent.transform.right * cubeHalfSize;
+								}
+								else {
+									pivotOffset = parent.transform.right * -cubeHalfSize;
+								}
+							}
+							else {
+								dragZ = dir.z > 0 ? 1 : -1;
+								if (dir.z > 0) {
+									pivotOffset = parent.transform.forward * cubeHalfSize;
+								}
+								else {
+									pivotOffset = -parent.transform.forward * cubeHalfSize;
+								}
+							}
+
+							pivotOffset += -parent.transform.up * cubeHalfSize;
+							pivot.transform.position += pivotOffset;
+							target.transform.position -= pivotOffset;
 						}
-						else if (dragZ != 0) {
-							xRotation += ry * 10f;
-							xRotation = dragZ > 0 ? Mathf.Clamp(xRotation, 0, 90) : Mathf.Clamp(xRotation, -90, 0);
-							pivot.transform.localEulerAngles = new Vector3(xRotation, 0, 0);
+
+					} else {
+						if (dragLock == false) {
+							float rx = mx * cos - my * sin;
+							float ry = mx * sin + my * cos;
+
+							if (mx != 0 || my != 0) {
+								if (dragX != 0) {
+									zRotation += rx * 10f;
+									zRotation = dragX > 0 ? Mathf.Clamp(zRotation, 0, 90) : Mathf.Clamp(zRotation, -90, 0);
+									pivot.transform.localEulerAngles = new Vector3(0, 0, -zRotation);
+								}
+								else if (dragZ != 0) {
+									xRotation += ry * 10f;
+									xRotation = dragZ > 0 ? Mathf.Clamp(xRotation, 0, 90) : Mathf.Clamp(xRotation, -90, 0);
+									pivot.transform.localEulerAngles = new Vector3(xRotation, 0, 0);
+								}
+							}
 						}
 					}
-					
 				}
 			} else {
+				// If nothing is targeted rotate the view
 				cameraRotation += -mx * 8;
 				RotateCameraBy(mx * 8);
 			}
@@ -274,54 +301,69 @@ public class Base : MonoBehaviour {
 			lastY = Input.mousePosition.y;
 		}
 
+		// When the left button is released, test whether the token can move in the chosen direction
 		if (Input.GetMouseButtonUp(0)) {
+			dragLock = false;
 
 			if (target) {
 				bool moved = false;
-				Vector3 offset;
+				// Vector3 offset;
+				float pX = posX, pY = posY;
 
 				pivot.transform.rotation = rotSave;
 
 				if (zRotation > 45) {
-					posX++;
-					pivot.transform.position += parent.right;
-					target.transform.Rotate(-parent.forward, 90, Space.World);
-					moved = true;
+					pX++;
+					if (TestPosition(pX, pY)) {
+						posX = pX;
+						pivot.transform.position += parent.right;
+						target.transform.Rotate(-parent.forward, 90, Space.World);
+						moved = true;
+					}
 				}
 				else if (zRotation < -45) {
-					posX--;
-					pivot.transform.position -= parent.right;
-					target.transform.Rotate(parent.forward, 90, Space.World);
-					moved = true;
+					pX--;
+					if (TestPosition(pX, pY)) {
+						posX = pX;
+						pivot.transform.position -= parent.right;
+						target.transform.Rotate(parent.forward, 90, Space.World);
+						moved = true;
+					}
 				}
 				else if (xRotation > 45) {
-					posY++;
-					pivot.transform.position += parent.forward;
-					target.transform.Rotate(parent.right, 90, Space.World);
-					moved = true;
+					pY++;
+					if (TestPosition(pX, pY)) {
+						posY = pY;
+						pivot.transform.position += parent.forward;
+						target.transform.Rotate(parent.right, 90, Space.World);
+						moved = true;
+					}
 				}
 				else if (xRotation < -45) {
-					posY--;
-					pivot.transform.position -= parent.forward;
-					target.transform.Rotate(-parent.right, 90, Space.World);
-					moved = true;
+					pY--;
+					if (TestPosition(pX, pY)) {
+						posY = pY;
+						pivot.transform.position -= parent.forward;
+						target.transform.Rotate(-parent.right, 90, Space.World);
+						moved = true;
+					}
 				}
 
+				if (moved) {
+					// TestPosition();
+				}
 				pivot.transform.position -= pivotOffset;
 				target.transform.position += pivotOffset;
 				pivot.transform.localPosition = new Vector3(posX, 0, posY);
 				target.transform.localPosition = new Vector3(0, 0, 0);
 
-				if (moved) {
-					TestPosition();
-				}
 
 			} else {
 				// baseRotation = mx * 4;
 			}
 
 			target = null;
-			
+
 		}
 
 	}
