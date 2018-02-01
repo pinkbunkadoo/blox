@@ -94,18 +94,21 @@ public class Base : MonoBehaviour {
 		posX = pivot.transform.localPosition.x;
 		posY = pivot.transform.localPosition.z;
 
+		sphere.transform.position = new Vector3(posX, 0, posY);
+
 		focus = new Vector3(0, -0.6f, 0);
 
 		cameraRotation = -45;
 		RotateCameraBy(-cameraRotation);
 	}
 
-	bool TestPosition(float x, float z) {
+	// Test 2d grid coordinate position for valid move
+	bool TestPosition(float x, float y) {
 		RaycastHit hit;
 
-		Vector3 p = new Vector3(x, 0, z);
+		Vector3 p = new Vector3(x, 0, y);
 
-		sphere.transform.position = p;
+		// sphere.transform.position = p;
 
 		// if (Physics.Raycast(pivot.transform.position, -Vector3.up, out hit, 10f)) {
 		if (Physics.Raycast(p, -Vector3.up, out hit, 1f)) {
@@ -161,21 +164,6 @@ public class Base : MonoBehaviour {
 		}
 		return false;
 
-		// var triggers = GameObject.FindGameObjectsWithTag("Trigger");
-		// foreach (GameObject trigger in triggers) {
-		// 	if (trigger.transform.position.x == posX && trigger.transform.position.z == posY) {
-				// if (trigger.GetComponent<Trigger>().value > 0) {
-				// 	if (Mathf.Round(token.transform.up.y) == -1) {
-				// 		print("trigger1");
-				// 	}
-				// 	else if (Mathf.Round(token.transform.forward.y) == -1) {
-				// 		print("trigger4");
-				// 	}
-				// }
-			// }
-            // Instantiate(respawnPrefab, respawn.transform.position, respawn.transform.rotation);
-        // }
-
 	}
 
 	// Update is called once per frame
@@ -190,7 +178,7 @@ public class Base : MonoBehaviour {
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
 
-			if (Physics.Raycast(ray, out hit, 100)) {				
+			if (Physics.Raycast(ray, out hit, 100)) {
 				if (hit.transform.tag == "TokenPivot" && hit.normal == Vector3.up) {
 					dx = 0;
 					dy = 0;
@@ -234,8 +222,8 @@ public class Base : MonoBehaviour {
 					// GameObject.Find("Canvas/Text3").GetComponent<Text>().text = "Dir:" + dir.ToString();
 
 					float d = Mathf.Sqrt(dx * dx + dy * dy);
-					Vector3 temp = pivot.transform.position + dir;
 
+					Vector3 temp = sphere.transform.position + dir;
 					if (TestPosition(temp.x, temp.z)) {
 						dragLock = false;
 					} else {
@@ -349,14 +337,15 @@ public class Base : MonoBehaviour {
 					}
 				}
 
-				if (moved) {
-					// TestPosition();
-				}
 				pivot.transform.position -= pivotOffset;
 				target.transform.position += pivotOffset;
 				pivot.transform.localPosition = new Vector3(posX, 0, posY);
 				target.transform.localPosition = new Vector3(0, 0, 0);
 
+				if (moved) {
+					sphere.transform.position = new Vector3(pivot.transform.position.x, 0, pivot.transform.position.z);
+					// TestPosition();
+				}
 
 			} else {
 				// baseRotation = mx * 4;
