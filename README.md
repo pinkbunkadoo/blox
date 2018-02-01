@@ -1,6 +1,6 @@
 # What is it?
 
-Blox is an early prototype for a puzzle game.
+An early prototype for a 3d puzzle game.
 
 ## Installation
 
