@@ -23,11 +23,13 @@ public class Message : MonoBehaviour {
 		}
 	}
 
-	public void Display(string msg) {
+	public void Display(string msg, bool fade=true) {
 		text.CrossFadeAlpha(1.0f, 0, true);
 		text.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
 		text.text = msg;
-		cooldown = 1;
+		if (fade) {
+			cooldown = 1;
+		}
 	}
 
 }

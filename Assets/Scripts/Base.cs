@@ -35,7 +35,7 @@ public class Base : MonoBehaviour {
 	float dx = 0;
 	float dy = 0;
 
-	float baseRotation = 0;
+	// float baseRotation = 0;
 	float xRotation = 0;
 	float zRotation = 0;
 
@@ -72,6 +72,8 @@ public class Base : MonoBehaviour {
 
 	GameObject cameraPivot;
 	float cameraRotation = 0;
+
+	float t = 0;
 
 	void RotateCameraBy(float deg) {
 		cameraPivot.transform.Rotate(Vector3.up, deg);
@@ -129,6 +131,7 @@ public class Base : MonoBehaviour {
 
 				if (value == side) {
 					if (go.GetComponent<Trigger>().SetActive(true)) {
+						token.GetComponent<Token>().Flash();
 					}
 				}
 			}
@@ -144,38 +147,24 @@ public class Base : MonoBehaviour {
 		}
 		pivot.transform.position = startPosition.transform.position;
 		pivot.transform.rotation = Quaternion.identity;
+		token.transform.rotation = Quaternion.identity;
 		posX = pivot.transform.localPosition.x;
 		posY = pivot.transform.localPosition.z;
 		sphere.transform.position = new Vector3(posX, 0, posY);
 		token.GetComponent<Token>().Spawn();
-		showMessage("Stage");
+		showMessage("STAGE 01");
 		finished = false;
+
 	}
 
 	void Won() {
 		finished = true;
-		token.GetComponent<Token>().Gone();
-		showMessage("CLEAR!!!");
+		showMessage("STAGE CLEAR", false);
+		t = 1;
 	}
 
-	// Use this for initialization
-	void Start () {
-		token = GameObject.FindWithTag("Token");
-		sphere = GameObject.Find("Sphere");
-		cameraPivot = GameObject.Find("CameraPivot");
-
-		parent = pivot.transform.parent;
-		focus = new Vector3(0, -0.6f, 0);
-
-		cameraRotation = -45;
-		RotateCameraBy(-cameraRotation);
-
-		message = GameObject.Find("Canvas/Message");
-		Reset();
-	}
-
-	void showMessage(string msg) {
-		message.GetComponent<Message>().Display(msg);
+	void showMessage(string msg, bool fade=true) {
+		message.GetComponent<Message>().Display(msg, fade);
 	}
 
 	void ResetPivot() {
@@ -188,13 +177,28 @@ public class Base : MonoBehaviour {
 		pivotOffset = new Vector3(0, 0, 0);
 	}
 
+	// Use this for initialization
+	void Start () {
+		token = GameObject.FindWithTag("Token");
+		sphere = GameObject.Find("Sphere");
+		cameraPivot = GameObject.Find("CameraPivot");
+
+		parent = pivot.transform.parent;
+		focus = new Vector3(0, -0.6f, 0);
+		cameraRotation = -45;
+		RotateCameraBy(-cameraRotation);
+
+		message = GameObject.Find("Canvas/Message");
+		Reset();
+	}
+
 	void Step() {
 		float mx = Input.GetAxis("Mouse X");
 		float my = Input.GetAxis("Mouse Y");
 
 		// Test whether user has clicked token
 		if (Input.GetMouseButtonDown(0)) {
-			baseRotation = 0;
+			// baseRotation = 0;
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
 			if (Physics.Raycast(ray, out hit, 100)) {
@@ -384,6 +388,14 @@ public class Base : MonoBehaviour {
 	void Update () {
 		if (!finished) {
 			Step();
+		} else {
+			if (t != 0) {
+				t -= 1.0f * Time.deltaTime;
+				if (t <= 0) {
+					t = 0;
+					token.GetComponent<Token>().Gone();
+				}
+			}
 		}
 	}
 

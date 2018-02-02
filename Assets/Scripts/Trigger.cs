@@ -19,12 +19,12 @@ public class Trigger : MonoBehaviour {
 			var go1 = transform.GetChild(0).gameObject;
 			var	go2 = transform.GetChild(1).gameObject;
 			if (this.active) {
-				print(this.active);
-				go1.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.white);
-				go2.GetComponent<Renderer>().material.SetColor("_Emission", Color.cyan);
+				// go1.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.white);
+				// go2.GetComponent<Renderer>().material.SetColor("_Color", new Color(0, 0.75f, 1, 1));
+				go2.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0f, 0.85f, 1f));
 			} else {
-				go1.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.white);
-				go2.GetComponent<Renderer>().material.SetColor("_Emission", Color.black);
+				// go2.GetComponent<Renderer>().material.SetColor("_Color", Color.white);
+				go2.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0.5f, 0.5f, 0.5f));
 			}
 			return true;
 		}
