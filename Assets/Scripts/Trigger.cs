@@ -13,22 +13,19 @@ public class Trigger : MonoBehaviour {
 	public int value = Trigger.ONE;
 	public bool active = false;
 
-	public bool SetActive(bool a) {
-		if (active != a) {
-			active = a;
-			// Mesh mesh = GetComponent<MeshFilter>().mesh;
-			// var go = transform.Find("Symbol" + value.ToString()).gameObject;
-			// var go = transform.GetChild(0).gameObject;
-			// Renderer renderer = go.GetComponent<Renderer>();
-			// renderer.material.SetTextureOffset("_MainTex", new Vector2(0f, 0.5f));
-			// renderer.receiveShadows = false;
-
-			var go = transform.GetChild(0).gameObject;
-			go.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.white);
-
-			go = transform.GetChild(1).gameObject;
-			go.GetComponent<Renderer>().material.SetColor("_Emission", Color.cyan);
-
+	public bool SetActive(bool active) {
+		if (this.active != active) {
+			this.active = active;
+			var go1 = transform.GetChild(0).gameObject;
+			var	go2 = transform.GetChild(1).gameObject;
+			if (this.active) {
+				print(this.active);
+				go1.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.white);
+				go2.GetComponent<Renderer>().material.SetColor("_Emission", Color.cyan);
+			} else {
+				go1.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.white);
+				go2.GetComponent<Renderer>().material.SetColor("_Emission", Color.black);
+			}
 			return true;
 		}
 		return false;

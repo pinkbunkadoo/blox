@@ -7,8 +7,10 @@ public class Base : MonoBehaviour {
 
 	public GameObject pivot;
 	public GameObject token;
-	public GameObject glowPrefab;
-	public GameObject sphere;
+	// public GameObject glowPrefab;
+	GameObject sphere;
+
+	public GameObject startPosition;
 
 	// int mapWidth = 5;
 	// int mapHeight = 5;
@@ -38,7 +40,6 @@ public class Base : MonoBehaviour {
 	float zRotation = 0;
 
 	// float f = 0;
-
 	// float rotX = 0;
 	// float rotZ = 0;
 
@@ -77,7 +78,7 @@ public class Base : MonoBehaviour {
 		Camera.main.transform.LookAt(focus);
 	}
 
-// Test 2d grid coordinate position for valid move
+	// Test 2d grid coordinate position for valid move
 	bool TestPosition(float x, float y) {
 		RaycastHit hit;
 
@@ -136,34 +137,55 @@ public class Base : MonoBehaviour {
 		sphere.transform.position = new Vector3(x, 0, y);
 	}
 
+	public void Reset() {
+		GameObject[] trigs = GameObject.FindGameObjectsWithTag("Trigger");
+		foreach (GameObject element in trigs) {
+			element.GetComponent<Trigger>().SetActive(false);
+		}
+		pivot.transform.position = startPosition.transform.position;
+		pivot.transform.rotation = Quaternion.identity;
+		posX = pivot.transform.localPosition.x;
+		posY = pivot.transform.localPosition.z;
+		sphere.transform.position = new Vector3(posX, 0, posY);
+		token.GetComponent<Token>().Spawn();
+		showMessage("Stage");
+		finished = false;
+	}
+
+	void Won() {
+		finished = true;
+		token.GetComponent<Token>().Gone();
+		showMessage("CLEAR!!!");
+	}
+
 	// Use this for initialization
 	void Start () {
 		token = GameObject.FindWithTag("Token");
 		sphere = GameObject.Find("Sphere");
-		// cursor = GameObject.Find("Cursor");
-		// cursorEnd = GameObject.Find("CursorEnd");
 		cameraPivot = GameObject.Find("CameraPivot");
 
 		parent = pivot.transform.parent;
-		posX = pivot.transform.localPosition.x;
-		posY = pivot.transform.localPosition.z;
-
-		sphere.transform.position = new Vector3(posX, 0, posY);
-
 		focus = new Vector3(0, -0.6f, 0);
 
 		cameraRotation = -45;
 		RotateCameraBy(-cameraRotation);
 
-		GameObject[] trigs = GameObject.FindGameObjectsWithTag("Trigger");
-		goal = trigs.Length;
-
-		message = GameObject.Find("Canvas/Message");		
-		showMessage("Stage");
+		message = GameObject.Find("Canvas/Message");
+		Reset();
 	}
 
 	void showMessage(string msg) {
 		message.GetComponent<Message>().Display(msg);
+	}
+
+	void ResetPivot() {
+		dx = 0;
+		dy = 0;
+		xRotation = 0;
+		zRotation = 0;
+		dragX = 0;
+		dragZ = 0;
+		pivotOffset = new Vector3(0, 0, 0);
 	}
 
 	void Step() {
@@ -173,23 +195,12 @@ public class Base : MonoBehaviour {
 		// Test whether user has clicked token
 		if (Input.GetMouseButtonDown(0)) {
 			baseRotation = 0;
-
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
-
 			if (Physics.Raycast(ray, out hit, 100)) {
 				if (hit.transform.tag == "TokenPivot" && hit.normal == Vector3.up) {
-					// print(hit.transform);
-					dx = 0;
-					dy = 0;
-					xRotation = 0;
-					zRotation = 0;
-					dragX = 0;
-					dragZ = 0;
-
-					pivotOffset = new Vector3(0, 0, 0);
+					ResetPivot();
 					rotSave = pivot.transform.rotation;
-
 					target = token;
 				} else {
 					target = null;
@@ -286,7 +297,7 @@ public class Base : MonoBehaviour {
 					}
 				}
 			} else {
-				// If nothing is targeted rotate the view
+				// If nothing is targeted, rotate the view
 				cameraRotation += -mx * 8;
 				RotateCameraBy(mx * 8);
 			}
@@ -360,8 +371,7 @@ public class Base : MonoBehaviour {
 						}
 					}
 					if (done) {
-						finished = true;
-						showMessage("CLEAR!!!");
+						Won();
 					}
 				}
 			}
