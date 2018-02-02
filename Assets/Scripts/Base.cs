@@ -23,6 +23,8 @@ public class Base : MonoBehaviour {
 	// 	1, 1, 1, 1, 1
 	// 	};
 
+	int goal;
+
 	float posX = 0;
 	float posY = 0;
 
@@ -57,8 +59,7 @@ public class Base : MonoBehaviour {
 
 	Vector3 dragDirection;
 
-	// GameObject cursor;
-	// GameObject cursorEnd;
+	GameObject message;
 
 	Transform parent;
 
@@ -70,52 +71,38 @@ public class Base : MonoBehaviour {
 	GameObject cameraPivot;
 	float cameraRotation = 0;
 
-
 	void RotateCameraBy(float deg) {
 		cameraPivot.transform.Rotate(Vector3.up, deg);
 		Camera.main.transform.LookAt(focus);
 	}
 
-	void SetPosition(int x, int y) {
-		posX = x;
-		posY = y;
-		pivot.transform.position = parent.TransformVector(new Vector3(posX, 0, posY));
-	}
-
-	// Use this for initialization
-	void Start () {
-		token = GameObject.FindWithTag("Token");
-		sphere = GameObject.Find("Sphere");
-		// cursor = GameObject.Find("Cursor");
-		// cursorEnd = GameObject.Find("CursorEnd");
-		cameraPivot = GameObject.Find("CameraPivot");
-
-		parent = pivot.transform.parent;
-		posX = pivot.transform.localPosition.x;
-		posY = pivot.transform.localPosition.z;
-
-		sphere.transform.position = new Vector3(posX, 0, posY);
-
-		focus = new Vector3(0, -0.6f, 0);
-
-		cameraRotation = -45;
-		RotateCameraBy(-cameraRotation);
-	}
-
-	// Test 2d grid coordinate position for valid move
+// Test 2d grid coordinate position for valid move
 	bool TestPosition(float x, float y) {
 		RaycastHit hit;
 
 		Vector3 p = new Vector3(x, 0, y);
 
-		// sphere.transform.position = p;
-
-		// if (Physics.Raycast(pivot.transform.position, -Vector3.up, out hit, 10f)) {
 		if (Physics.Raycast(p, -Vector3.up, out hit, 1f)) {
-			// print(hit.transform);
+			if (hit.transform.CompareTag("Trigger")) {
+			} else if (hit.transform.CompareTag("Tile")) {
+			} else {
+			}
+			return true;
+		} else { // No tile found
+		}
+		return false;
+
+	}
+
+	void SetPosition(float x, float y) {
+		RaycastHit hit;
+
+		Vector3 p = new Vector3(x, 0, y);
+
+		if (Physics.Raycast(p, -Vector3.up, out hit, 1f)) {
+
 			if (hit.transform.CompareTag("Trigger")) {
 				GameObject go = hit.transform.gameObject;
-
 				int value = go.GetComponent<Trigger>().value;
 				int side = 0;
 
@@ -140,32 +127,45 @@ public class Base : MonoBehaviour {
 
 				if (value == side) {
 					if (go.GetComponent<Trigger>().SetActive(true)) {
-						// var glow = Instantiate(glowPrefab, parent);
-						// glow.transform.position = go.transform.position;
-
- 						// GameObject light = new GameObject("Light");
-        				// Light lightComp = light.AddComponent<Light>();
-						// lightComp.range = 3;
-						// lightComp.intensity = 0;
-        				// lightComp.color = Color.red;
-        				// light.transform.position = go.transform.position;
-						// light.transform.parent = parent;
-
-						// Renderer renderer = token.GetComponent<Renderer>();
-						// renderer.material.SetColor("_Color", Color.cyan);
-						// renderer.material.SetTextureOffset("_MainTex", new Vector2(0f, 0.5f));
 					}
 				}
-			} else if (hit.transform.CompareTag("Tile")) {
-			} else {
 			}
-			return true;
-		} else { // No tile found
 		}
-		return false;
 
+		sphere.transform.position = new Vector3(x, 0, y);
 	}
 
+	// Use this for initialization
+	void Start () {
+		token = GameObject.FindWithTag("Token");
+		sphere = GameObject.Find("Sphere");
+		// cursor = GameObject.Find("Cursor");
+		// cursorEnd = GameObject.Find("CursorEnd");
+		cameraPivot = GameObject.Find("CameraPivot");
+
+		parent = pivot.transform.parent;
+		posX = pivot.transform.localPosition.x;
+		posY = pivot.transform.localPosition.z;
+
+		sphere.transform.position = new Vector3(posX, 0, posY);
+
+		focus = new Vector3(0, -0.6f, 0);
+
+		cameraRotation = -45;
+		RotateCameraBy(-cameraRotation);
+
+		GameObject[] trigs = GameObject.FindGameObjectsWithTag("Trigger");
+		goal = trigs.Length;
+
+		message = GameObject.Find("Canvas/Message");		
+		showMessage("Stage");
+	}
+
+	void showMessage(string msg) {
+		message.GetComponent<Message>().Display(msg);
+	}
+
+	
 	// Update is called once per frame
 	void Update () {
 		float mx = Input.GetAxis("Mouse X");
@@ -180,6 +180,7 @@ public class Base : MonoBehaviour {
 
 			if (Physics.Raycast(ray, out hit, 100)) {
 				if (hit.transform.tag == "TokenPivot" && hit.normal == Vector3.up) {
+					// print(hit.transform);
 					dx = 0;
 					dy = 0;
 					xRotation = 0;
@@ -222,15 +223,21 @@ public class Base : MonoBehaviour {
 					// GameObject.Find("Canvas/Text3").GetComponent<Text>().text = "Dir:" + dir.ToString();
 
 					float d = Mathf.Sqrt(dx * dx + dy * dy);
-
-					Vector3 temp = sphere.transform.position + dir;
-					if (TestPosition(temp.x, temp.z)) {
-						dragLock = false;
-					} else {
-						dragLock = true;
-					}
+					// GameObject.Find("Canvas/Text3").GetComponent<Text>().text = "d:" + d;
 
 					if (dragX == 0 && dragZ == 0 && Mathf.Abs(d) > 5) {
+						float _x = dir.x;
+						float _z = dir.z;
+						Vector3 temp = sphere.transform.position + new Vector3(
+							Mathf.Abs(_x) > Mathf.Abs(_z) ? Mathf.Sign(_x) : 0,
+							0,
+							Mathf.Abs(_z) > Mathf.Abs(_x) ? Mathf.Sign(_z) : 0);
+
+						if (TestPosition(temp.x, temp.z)) {
+							dragLock = false;
+						} else {
+							dragLock = true;
+						}
 
 						if (dragLock == false) {
 							pivotOffset = new Vector3(0, 0, 0);
@@ -343,16 +350,23 @@ public class Base : MonoBehaviour {
 				target.transform.localPosition = new Vector3(0, 0, 0);
 
 				if (moved) {
-					sphere.transform.position = new Vector3(pivot.transform.position.x, 0, pivot.transform.position.z);
-					// TestPosition();
+					SetPosition(pivot.transform.position.x, pivot.transform.position.z);
+					// sphere.transform.position = new Vector3(pivot.transform.position.x, 0, pivot.transform.position.z);
+					bool finished = true;
+					GameObject[] trigs = GameObject.FindGameObjectsWithTag("Trigger");
+					foreach (GameObject element in trigs) {
+						bool active = element.GetComponent<Trigger>().active;
+						if (active == false) {
+							finished = false;
+							break;
+						}
+					}
+					if (finished) {
+						showMessage("CLEAR!!!");
+					}
 				}
-
-			} else {
-				// baseRotation = mx * 4;
 			}
-
 			target = null;
-
 		}
 
 	}

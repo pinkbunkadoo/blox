@@ -18,10 +18,10 @@ public class MainCamera : MonoBehaviour {
 		// offset = transform.position - token.transform.position;
 		// target = transform.position;
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
-		
+
 	}
 
 	void LateUpdate () {
