@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Token : MonoBehaviour {
 	int state = 0;
+	Color color = new Color(0, 0.75f, 0.9f, 1);
 
 	float t = 0;
 
@@ -14,8 +15,8 @@ public class Token : MonoBehaviour {
 		}
 		else if (this.state == 2) { // flash
 			t = 1;
+			gameObject.GetComponent<Renderer>().material.SetColor("_EmissionColor", color);
 		}
-
 	}
 
 	public void Spawn() {
@@ -29,6 +30,14 @@ public class Token : MonoBehaviour {
 	public void Flash() {
 		print("flash");
 		SetState(2);
+	}
+
+	public void LightOn() {
+		gameObject.GetComponent<Renderer>().material.SetColor("_EmissionColor", color);
+	}
+
+	public void LightOff() {
+		gameObject.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0, 0, 0));
 	}
 
 	// Use this for initialization
@@ -54,10 +63,11 @@ public class Token : MonoBehaviour {
 				gameObject.SetActive(false);
 			}
 		} else if (state == 2) {
-			t -= 2f * Time.deltaTime;
-			// var a = Mathf.Lerp(1.0f, 0f, t);
-			var a = Mathf.PingPong(t, 1f);
-			gameObject.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0, 0.85f * a, 1 * a, 1));
+			t -= 1.6f * Time.deltaTime;
+			var a = Mathf.Lerp(0f, 1f, t*t);
+			// var a = Mathf.PingPong(t, 1f);
+			// gameObject.GetComponent<Renderer>().material.SetColor("Color", new Color(0.5f * a, 0.5f * a, 0.5f * a, 1));
+			gameObject.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(color.r, color.g * a, color.b * a, 1));
 			if (t <= 0) {
 				state = 0;
 			}

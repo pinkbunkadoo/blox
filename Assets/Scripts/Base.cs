@@ -25,7 +25,7 @@ public class Base : MonoBehaviour {
 	// 	1, 1, 1, 1, 1
 	// 	};
 
-	int goal;
+	int moves = 0;
 
 	float posX = 0;
 	float posY = 0;
@@ -43,8 +43,6 @@ public class Base : MonoBehaviour {
 	// float rotX = 0;
 	// float rotZ = 0;
 
-	Vector3 lastPos;
-	Vector3 mouseDownPos;
 	bool dragLock = false;
 
 	float dragX = 0;
@@ -55,15 +53,15 @@ public class Base : MonoBehaviour {
 	Quaternion targetRotation;
 	Quaternion rotSave;
 
-	UnityEngine.Plane targetPlane;
+	// UnityEngine.Plane targetPlane;
 
-	Vector3 dragDirection;
+	// Vector3 dragDirection;
 
 	GameObject message;
 
 	Transform parent;
 
-	Vector3 rotPoint;
+	// Vector3 rotPoint;
 	Vector3 pivotOffset;
 
 	Vector3 focus;
@@ -71,13 +69,23 @@ public class Base : MonoBehaviour {
 	bool finished = false;
 
 	GameObject cameraPivot;
-	float cameraRotation = 0;
+	float cameraRotation = -45;
 
 	float t = 0;
 
 	void RotateCameraBy(float deg) {
+		// print("RotateCameraBy " + deg);
 		cameraPivot.transform.Rotate(Vector3.up, deg);
 		Camera.main.transform.LookAt(focus);
+	}
+
+	void ResetCamera() {
+		// print("ResetCamera");
+		cameraRotation = -45;
+		cameraPivot.transform.rotation = Quaternion.identity;
+		Camera.main.transform.rotation = Quaternion.identity;
+		Camera.main.transform.position = new Vector3(0, 12, -12);
+		RotateCameraBy(-cameraRotation);
 	}
 
 	// Test 2d grid coordinate position for valid move
@@ -104,7 +112,7 @@ public class Base : MonoBehaviour {
 		Vector3 p = new Vector3(x, 0, y);
 
 		if (Physics.Raycast(p, -Vector3.up, out hit, 1f)) {
-
+			bool activate = false;
 			if (hit.transform.CompareTag("Trigger")) {
 				GameObject go = hit.transform.gameObject;
 				int value = go.GetComponent<Trigger>().value;
@@ -131,13 +139,24 @@ public class Base : MonoBehaviour {
 
 				if (value == side) {
 					if (go.GetComponent<Trigger>().SetActive(true)) {
+						activate = true;
 						token.GetComponent<Token>().Flash();
 					}
 				}
 			}
+			// if (activate) {
+			// 	token.GetComponent<Token>().LightOn();
+			// } else {
+			// 	token.GetComponent<Token>().LightOff();
+			// }
+			sphere.transform.position = new Vector3(x, 0, y);
+			SetMoves(moves + 1);
 		}
+	}
 
-		sphere.transform.position = new Vector3(x, 0, y);
+	public void SetMoves(int value) {
+		moves = value;
+		GameObject.Find("Canvas/Moves").GetComponent<Text>().text = "Moves: " + moves;
 	}
 
 	public void Reset() {
@@ -145,6 +164,7 @@ public class Base : MonoBehaviour {
 		foreach (GameObject element in trigs) {
 			element.GetComponent<Trigger>().SetActive(false);
 		}
+
 		pivot.transform.position = startPosition.transform.position;
 		pivot.transform.rotation = Quaternion.identity;
 		token.transform.rotation = Quaternion.identity;
@@ -152,14 +172,17 @@ public class Base : MonoBehaviour {
 		posY = pivot.transform.localPosition.z;
 		sphere.transform.position = new Vector3(posX, 0, posY);
 		token.GetComponent<Token>().Spawn();
-		showMessage("STAGE 01");
+
+		ResetCamera();
+		SetMoves(0);
 		finished = false;
 
+		showMessage("STAGE 01");
 	}
 
 	void Won() {
 		finished = true;
-		showMessage("STAGE CLEAR", false);
+		showMessage("STAGE CLEAR!", false);
 		t = 1;
 	}
 
@@ -185,8 +208,9 @@ public class Base : MonoBehaviour {
 
 		parent = pivot.transform.parent;
 		focus = new Vector3(0, -0.6f, 0);
-		cameraRotation = -45;
-		RotateCameraBy(-cameraRotation);
+
+		// cameraRotation = -45;
+		// RotateCameraBy(-cameraRotation);
 
 		message = GameObject.Find("Canvas/Message");
 		Reset();
@@ -390,7 +414,7 @@ public class Base : MonoBehaviour {
 			Step();
 		} else {
 			if (t != 0) {
-				t -= 1.0f * Time.deltaTime;
+				t -= 1f * Time.deltaTime;
 				if (t <= 0) {
 					t = 0;
 					token.GetComponent<Token>().Gone();

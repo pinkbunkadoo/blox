@@ -10,6 +10,10 @@ public class Trigger : MonoBehaviour {
 	public static int FIVE = 5;
 	public static int SIX = 6;
 
+	Color color = new Color(0.25f, 0.25f, 0.25f);
+	Color colorEmissionOn = new Color(0f, 0.7f, 0.85f);
+	Color colorEmissionOff = new Color(0.5f, 0.5f, 0.5f);
+
 	public int value = Trigger.ONE;
 	public bool active = false;
 
@@ -19,12 +23,11 @@ public class Trigger : MonoBehaviour {
 			var go1 = transform.GetChild(0).gameObject;
 			var	go2 = transform.GetChild(1).gameObject;
 			if (this.active) {
-				// go1.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.white);
-				// go2.GetComponent<Renderer>().material.SetColor("_Color", new Color(0, 0.75f, 1, 1));
-				go2.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0f, 0.85f, 1f));
+				go2.GetComponent<Renderer>().material.SetColor("Color", color);
+				go2.GetComponent<Renderer>().material.SetColor("_EmissionColor", colorEmissionOn);
 			} else {
-				// go2.GetComponent<Renderer>().material.SetColor("_Color", Color.white);
-				go2.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0.5f, 0.5f, 0.5f));
+				go2.GetComponent<Renderer>().material.SetColor("Color", color);
+				go2.GetComponent<Renderer>().material.SetColor("_EmissionColor", colorEmissionOff);
 			}
 			return true;
 		}
