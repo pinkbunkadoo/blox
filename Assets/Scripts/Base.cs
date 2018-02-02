@@ -34,7 +34,6 @@ public class Base : MonoBehaviour {
 	float dy = 0;
 
 	float baseRotation = 0;
-
 	float xRotation = 0;
 	float zRotation = 0;
 
@@ -67,6 +66,8 @@ public class Base : MonoBehaviour {
 	Vector3 pivotOffset;
 
 	Vector3 focus;
+
+	bool finished = false;
 
 	GameObject cameraPivot;
 	float cameraRotation = 0;
@@ -165,9 +166,7 @@ public class Base : MonoBehaviour {
 		message.GetComponent<Message>().Display(msg);
 	}
 
-	
-	// Update is called once per frame
-	void Update () {
+	void Step() {
 		float mx = Input.GetAxis("Mouse X");
 		float my = Input.GetAxis("Mouse Y");
 
@@ -352,16 +351,16 @@ public class Base : MonoBehaviour {
 				if (moved) {
 					SetPosition(pivot.transform.position.x, pivot.transform.position.z);
 					// sphere.transform.position = new Vector3(pivot.transform.position.x, 0, pivot.transform.position.z);
-					bool finished = true;
+					bool done = true;
 					GameObject[] trigs = GameObject.FindGameObjectsWithTag("Trigger");
 					foreach (GameObject element in trigs) {
-						bool active = element.GetComponent<Trigger>().active;
-						if (active == false) {
-							finished = false;
+						if (!element.GetComponent<Trigger>().active) {
+							done = false;
 							break;
 						}
 					}
-					if (finished) {
+					if (done) {
+						finished = true;
 						showMessage("CLEAR!!!");
 					}
 				}
@@ -369,6 +368,13 @@ public class Base : MonoBehaviour {
 			target = null;
 		}
 
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		if (!finished) {
+			Step();
+		}
 	}
 
 	void LateUpdate() {
