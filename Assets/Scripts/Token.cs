@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Token : MonoBehaviour {
 	int state = 0;
+	bool on = false;
 	Color color = new Color(0, 0.75f, 0.9f, 1);
 
 	float t = 0;
@@ -28,16 +29,19 @@ public class Token : MonoBehaviour {
 	}
 
 	public void Flash() {
-		print("flash");
+		// print("flash");
 		SetState(2);
 	}
 
 	public void LightOn() {
-		gameObject.GetComponent<Renderer>().material.SetColor("_EmissionColor", color);
+		gameObject.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0.1f, 0.1f, 0.1f));
+		on = true;
 	}
 
 	public void LightOff() {
+		// print("LightOff");
 		gameObject.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0, 0, 0));
+		on = false;
 	}
 
 	// Use this for initialization
@@ -48,6 +52,15 @@ public class Token : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (state == 0) {
+			// Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			// RaycastHit hit;
+			// bool hitSomething = Physics.Raycast(ray, out hit, 100);
+			// if (on) LightOff();
+			// if (hitSomething) {
+			// 	if (hit.transform.CompareTag("Token")) {
+			// 		LightOn();
+			// 	}
+			// }
 
 		} else if (state == 1) {
 			t += 1f * Time.deltaTime;

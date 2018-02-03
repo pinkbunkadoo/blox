@@ -112,7 +112,7 @@ public class Base : MonoBehaviour {
 		Vector3 p = new Vector3(x, 0, y);
 
 		if (Physics.Raycast(p, -Vector3.up, out hit, 1f)) {
-			bool activate = false;
+			// bool activate = false;
 			if (hit.transform.CompareTag("Trigger")) {
 				GameObject go = hit.transform.gameObject;
 				int value = go.GetComponent<Trigger>().value;
@@ -139,7 +139,7 @@ public class Base : MonoBehaviour {
 
 				if (value == side) {
 					if (go.GetComponent<Trigger>().SetActive(true)) {
-						activate = true;
+						// activate = true;
 						token.GetComponent<Token>().Flash();
 					}
 				}
@@ -186,6 +186,18 @@ public class Base : MonoBehaviour {
 		t = 1;
 	}
 
+	void TestWin() {
+		bool done = true;
+		GameObject[] triggers = GameObject.FindGameObjectsWithTag("Trigger");
+		foreach (GameObject element in triggers) {
+			if (!element.GetComponent<Trigger>().active) {
+				done = false;
+				break;
+			}
+		}
+		if (done) Won();
+	}
+
 	void showMessage(string msg, bool fade=true) {
 		message.GetComponent<Message>().Display(msg, fade);
 	}
@@ -199,18 +211,15 @@ public class Base : MonoBehaviour {
 		dragZ = 0;
 		pivotOffset = new Vector3(0, 0, 0);
 	}
+	
 
 	// Use this for initialization
 	void Start () {
-		token = GameObject.FindWithTag("Token");
+		// token = GameObject.FindWithTag("Token");
 		sphere = GameObject.Find("Sphere");
 		cameraPivot = GameObject.Find("CameraPivot");
-
 		parent = pivot.transform.parent;
 		focus = new Vector3(0, -0.6f, 0);
-
-		// cameraRotation = -45;
-		// RotateCameraBy(-cameraRotation);
 
 		message = GameObject.Find("Canvas/Message");
 		Reset();
@@ -220,13 +229,19 @@ public class Base : MonoBehaviour {
 		float mx = Input.GetAxis("Mouse X");
 		float my = Input.GetAxis("Mouse Y");
 
+		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+		RaycastHit hit;
+		bool hitSomething = Physics.Raycast(ray, out hit, 100);
+
 		// Test whether user has clicked token
 		if (Input.GetMouseButtonDown(0)) {
 			// baseRotation = 0;
-			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-			RaycastHit hit;
-			if (Physics.Raycast(ray, out hit, 100)) {
-				if (hit.transform.tag == "TokenPivot" && hit.normal == Vector3.up) {
+			// Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			// RaycastHit hit;
+			if (hitSomething) {
+				// if (hit.transform.CompareTag("Token") && hit.normal == Vector3.up) {
+				if (hit.transform.CompareTag("Token")) {
+					print(hit.transform);
 					ResetPivot();
 					rotSave = pivot.transform.rotation;
 					target = token;
@@ -240,12 +255,8 @@ public class Base : MonoBehaviour {
 
 		// If the left mouse button is depressed, either update the token (if selected) or rotate the view around the board
 		if (Input.GetMouseButton(0)) {
-			Vector3 v1 = (Camera.main.transform.position - new Vector3(0, Camera.main.transform.position.y, 0)).normalized;
-			// GameObject.Find("Canvas/Text1").GetComponent<Text>().text = "Cam:" + v1.ToString();
-
+			// Vector3 v1 = (Camera.main.transform.position - new Vector3(0, Camera.main.transform.position.y, 0)).normalized;
 			float angle = cameraRotation;
-			// GameObject.Find("Canvas/Text2").GetComponent<Text>().text = "Deg:" + angle.ToString("n2");
-
 			float sin = Mathf.Sin(angle * Mathf.Deg2Rad);
 			float cos = Mathf.Cos(angle * Mathf.Deg2Rad);
 
@@ -256,16 +267,13 @@ public class Base : MonoBehaviour {
 				if (dragLock == false) {
 					float cx = dx * cos - dy * sin;
 					float cy = dx * sin + dy * cos;
-
-					Vector3 dir = new Vector3(cx, 0, cy).normalized;
-					// GameObject.Find("Canvas/Text3").GetComponent<Text>().text = "Dir:" + dir.ToString();
-
 					float d = Mathf.Sqrt(dx * dx + dy * dy);
-					// GameObject.Find("Canvas/Text3").GetComponent<Text>().text = "d:" + d;
 
 					if (dragX == 0 && dragZ == 0 && Mathf.Abs(d) > 5) {
+						Vector3 dir = new Vector3(cx, 0, cy).normalized;
 						float _x = dir.x;
 						float _z = dir.z;
+
 						Vector3 temp = sphere.transform.position + new Vector3(
 							Mathf.Abs(_x) > Mathf.Abs(_z) ? Mathf.Sign(_x) : 0,
 							0,
@@ -390,17 +398,7 @@ public class Base : MonoBehaviour {
 				if (moved) {
 					SetPosition(pivot.transform.position.x, pivot.transform.position.z);
 					// sphere.transform.position = new Vector3(pivot.transform.position.x, 0, pivot.transform.position.z);
-					bool done = true;
-					GameObject[] trigs = GameObject.FindGameObjectsWithTag("Trigger");
-					foreach (GameObject element in trigs) {
-						if (!element.GetComponent<Trigger>().active) {
-							done = false;
-							break;
-						}
-					}
-					if (done) {
-						Won();
-					}
+					TestWin();
 				}
 			}
 			target = null;
