@@ -8,8 +8,8 @@ public class Base : MonoBehaviour {
 	public GameObject startPosition;
 	public GameObject pivot;
 	public Condition[] conditions;
-	public GameObject cameraFocus;
-
+	
+	GameObject cameraFocus;
 	Vector3 cameraFocalPoint;
 	
 	GameObject token;
@@ -60,8 +60,6 @@ public class Base : MonoBehaviour {
 
 	bool finished = false;
 
-	// Vector3 focus;
-	// Transform cameraFocus;
 	GameObject cameraPivot;
 	float cameraRotation = -45;
 	bool cameraMoving = false;
@@ -70,23 +68,18 @@ public class Base : MonoBehaviour {
 	float t = 0;
 
 	void RotateCameraBy(float deg) {
-		// print("RotateCameraBy " + deg);
 		cameraPivot.transform.Rotate(Vector3.up, deg);
 		Camera.main.transform.LookAt(cameraFocus.transform.position);
 	}
 
 	public void SetCameraFocus(GameObject go) {
-		// print(go.transform.TransformPoint(0, 0, 0));
-		// print("SetCameraFocus " + go);
 		cameraFocus = go;
-		// cameraFocus.transform.position -= new Vector3(0, -0.6f, 0);
 		cameraFocalPoint = cameraFocus.transform.position - new Vector3(0, -0.6f, 0);
-		// cameraPivot.transform.position = cameraFocus.transform.position;
 	}
 
 	void ResetCamera() {
 		// focus = new Vector3(0, -0.6f, 0);
-		SetCameraFocus(startPosition);
+		SetCameraFocus(startPosition.transform.Find("focus").gameObject);
 		cameraPivot.transform.position = cameraFocalPoint;
 		cameraRotation = -45;
 		cameraPivot.transform.rotation = Quaternion.identity;
@@ -188,6 +181,8 @@ public class Base : MonoBehaviour {
 		foreach (GameObject element in trigs) {
 			element.GetComponent<TileSymbol>().SetLight(false);
 		}
+
+		area = startPosition;
 
 		pivot.transform.position = startPosition.transform.position;
 		pivot.transform.rotation = Quaternion.identity;
