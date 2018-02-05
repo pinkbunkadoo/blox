@@ -46,7 +46,7 @@ public class Base : MonoBehaviour {
 	float dragZ = 0;
 	bool dragLock = false;
 
-	GameObject target;
+	// GameObject target;
 	Vector3 targetPos;
 	Quaternion targetRotation;
 	Quaternion rotSave;
@@ -62,8 +62,10 @@ public class Base : MonoBehaviour {
 
 	GameObject cameraPivot;
 	float cameraRotation = -45;
-	bool cameraMoving = false;
 	Vector3 cameraMoveVelocity = Vector3.zero;
+
+	GameObject canvas;
+	GameObject banner;
 
 	float t = 0;
 
@@ -86,7 +88,7 @@ public class Base : MonoBehaviour {
 		Camera.main.transform.rotation = Quaternion.identity;
 		Camera.main.transform.position = new Vector3(0, 12, -12);
 		RotateCameraBy(-cameraRotation);
-		cameraMoving = false;
+		// cameraMoving = false;
 	}
 
 	// Test 2d grid coordinate position for valid move
@@ -173,7 +175,8 @@ public class Base : MonoBehaviour {
 
 	public void SetMoves(int value) {
 		moves = value;
-		GameObject.Find("Canvas/Moves").GetComponent<Text>().text = "" + moves;
+		GameObject go = canvas.transform.Find("MovesText").gameObject;
+		go.GetComponent<Text>().text = "" + moves;
 	}
 
 	public void Reset() {
@@ -201,12 +204,12 @@ public class Base : MonoBehaviour {
 		finished = false;
 		SetMoves(0);
 
-		showMessage("STAGE");
+		ShowMessage("STAGE");
 	}
 
 	void Won() {
 		finished = true;
-		showMessage("STAGE CLEAR!", false);
+		ShowMessage("STAGE CLEAR!", false);
 		t = 1;
 	}
 
@@ -234,29 +237,108 @@ public class Base : MonoBehaviour {
 		}
 	}
 
-	void showMessage(string msg, bool fade=true) {
-		message.GetComponent<Message>().Display(msg, fade);
+	void ShowMessage(string msg, bool fade=true) {
+		StartCoroutine (ShowMessageNow(msg));
 	}
 
-	void ResetPivot() {
-		dx = 0;
-		dy = 0;
-		xRotation = 0;
-		zRotation = 0;
-		dragX = 0;
-		dragZ = 0;
-		pivotOffset = new Vector3(0, 0, 0);
+	public IEnumerator ShowMessageNow(string msg) {
+		GameObject goBackground = canvas.transform.Find("Background").gameObject;
+		GameObject goText = canvas.transform.Find("Text").gameObject;
+		Graphic image = goBackground.GetComponent<Image>();
+		Text text = goText.GetComponent<Text>();
+		text.text = msg;
+		image.CrossFadeAlpha(0.5f, 0, true);
+		text.CrossFadeAlpha(1, 0, true);
+
+        yield return new WaitForSeconds(1);
+
+        // Code here will be executed after 3 secs
+		image.CrossFadeAlpha(0, 1, true);
+		text.CrossFadeAlpha(0, 1, true);
+    }
+
+	void CreateCanvas() {
+		GameObject go = new GameObject("MyCanvas");
+		go.layer = 5;
+
+		Canvas canvas = go.AddComponent<Canvas>();
+		canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+		CanvasScaler cs = go.AddComponent<CanvasScaler>();
+		cs.scaleFactor = 1.0f;
+		cs.dynamicPixelsPerUnit = 100f;
+
+		go.AddComponent<GraphicRaycaster>();
+
+		go.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 3.0f);
+		go.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 3.0f);
+
+		GameObject goBackground = new GameObject("Background");
+		goBackground.transform.parent = go.transform;
+		Image backgroundImage = goBackground.AddComponent<Image>();
+		backgroundImage.color = Color.black;
+		RectTransform rt = goBackground.GetComponent<RectTransform>();
+		rt.anchoredPosition = new Vector2(0, 200f);
+		rt.anchorMin = new Vector2(0.5f, 0.5f);
+		rt.anchorMax = new Vector2(0.5f, 0.5f);
+		rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 1024);
+		rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 100);
+
+		GameObject goText = new GameObject("Text");
+		goText.transform.parent = go.transform;
+		Text text = goText.AddComponent<Text>();
+
+		rt = goText.GetComponent<RectTransform>();
+		rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 3.0f);
+		rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 3.0f);
+		rt.anchoredPosition = new Vector2(0, 200f);
+		rt.anchorMax = new Vector2(0.5f, 0.5f);
+		rt.anchorMin = new Vector2(0.5f, 0.5f);
+
+		text.color = Color.white;
+		text.alignment = TextAnchor.MiddleCenter;
+		text.horizontalOverflow = HorizontalWrapMode.Overflow;
+		text.verticalOverflow = VerticalWrapMode.Overflow;
+		text.font = (Font) Resources.GetBuiltinResource (typeof(Font), "Arial.ttf");
+		text.fontSize = 36;
+		text.fontStyle = FontStyle.Bold;
+		text.enabled = true;
+
+		GameObject goMovesText = new GameObject("MovesText");
+		goMovesText.transform.parent = go.transform;
+		Text movesText = goMovesText.AddComponent<Text>();
+		goMovesText.AddComponent<Outline>();
+		goMovesText.AddComponent<Shadow>();
+
+		rt = goMovesText.GetComponent<RectTransform>();
+		rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 3.0f);
+		rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 3.0f);
+		rt.anchoredPosition = new Vector2(-75, 65);
+		rt.anchorMax = new Vector2(1f, 0f);
+		rt.anchorMin = new Vector2(1f, 0f);
+
+		movesText.color = Color.white;
+		movesText.alignment = TextAnchor.MiddleCenter;
+		movesText.horizontalOverflow = HorizontalWrapMode.Overflow;
+		movesText.verticalOverflow = VerticalWrapMode.Overflow;
+		movesText.font = (Font) Resources.GetBuiltinResource (typeof(Font), "Arial.ttf");
+		movesText.fontSize = 48;
+		movesText.fontStyle = FontStyle.Bold;
+		movesText.enabled = true;
+
+
+		this.canvas = go;
 	}
-	
 
 	// Use this for initialization
 	void Start () {
 		token = pivot.transform.GetChild(0).gameObject;
 		position = new GameObject("Position");
 		position.transform.position = new Vector3(0, 0, 0);
-		cameraPivot = Camera.main.transform.parent.gameObject; //GameObject.Find("CameraPivot");
-		// parent = pivot.transform.parent;
-		message = GameObject.Find("Canvas/Message");
+		cameraPivot = Camera.main.transform.parent.gameObject;
+		// message = GameObject.Find("Canvas/Message");
+		// message = GUI.Label(new Rect(0, 100, 300, 100), "Label");
+		CreateCanvas();
 		Reset();
 	}
 
@@ -270,11 +352,11 @@ public class Base : MonoBehaviour {
 			RaycastHit hit;
 			bool hitSomething = Physics.Raycast(ray, out hit, 100);
 			if (hitSomething) {
-				if (hit.transform.CompareTag("Token")) {
-					target = token;
-				} else {
-					target = null;
-				}
+				// if (hit.transform.CompareTag("Token")) {
+				// 	target = token;
+				// } else {
+				// 	target = null;
+				// }
 			}
 			lastX = Input.mousePosition.x;
 			lastY = Input.mousePosition.y;
@@ -433,8 +515,14 @@ public class Base : MonoBehaviour {
 					// TestWin();
 				}
 			// }
-			target = null;
-			ResetPivot();
+			// target = null;
+			dx = 0;
+			dy = 0;
+			xRotation = 0;
+			zRotation = 0;
+			dragX = 0;
+			dragZ = 0;
+			pivotOffset = new Vector3(0, 0, 0);
 			rotSave = pivot.transform.rotation;
 		}
 
@@ -454,12 +542,12 @@ public class Base : MonoBehaviour {
 			}
 		}
 		if (cameraPivot.transform.position != cameraFocalPoint) {
-			cameraMoving = true;
+			
 			// float step = 1 * Time.deltaTime;
 			// cameraPivot.transform.position = Vector3.MoveTowards(cameraPivot.transform.position, cameraFocalPoint, step);
 			var pos = Vector3.SmoothDamp(cameraPivot.transform.position, cameraFocalPoint, ref cameraMoveVelocity, 0.5f);
 			cameraPivot.transform.position = pos;
-			if (cameraPivot.transform.position == cameraFocalPoint) cameraMoving = false;
+			// if (cameraPivot.transform.position == cameraFocalPoint) cameraMoving = false;
 		}
 	}
 
