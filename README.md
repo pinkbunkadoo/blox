@@ -11,4 +11,4 @@ Open the project in Unity to run the prototype.
 - Drag the cube to roll it.
 - Roll onto symbol tiles to activate them.
 - A symbol tile will activate when its symbol matches the symbol of the cube side facing it.
-- Drag the view to rotate around the board.
+- Try to reach the exit (orange tile)
