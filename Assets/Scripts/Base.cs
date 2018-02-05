@@ -201,7 +201,7 @@ public class Base : MonoBehaviour {
 		finished = false;
 		SetMoves(0);
 
-		showMessage("STAGE 01");
+		showMessage("STAGE");
 	}
 
 	void Won() {
@@ -271,8 +271,6 @@ public class Base : MonoBehaviour {
 			bool hitSomething = Physics.Raycast(ray, out hit, 100);
 			if (hitSomething) {
 				if (hit.transform.CompareTag("Token")) {
-					ResetPivot();
-					rotSave = pivot.transform.rotation;
 					target = token;
 				} else {
 					target = null;
@@ -292,7 +290,7 @@ public class Base : MonoBehaviour {
 			dx = dx + Input.mousePosition.x - lastX;
 			dy = dy + Input.mousePosition.y - lastY;
 
-			if (target) {
+			// if (target) {
 				if (dragLock == false) {
 					float cx = dx * cos - dy * sin;
 					float cy = dx * sin + dy * cos;
@@ -339,7 +337,8 @@ public class Base : MonoBehaviour {
 
 							pivotOffset += -transform.up * cubeHalfSize;
 							pivot.transform.position += pivotOffset;
-							target.transform.position -= pivotOffset;
+							// target.transform.position -= pivotOffset;
+							token.transform.position -= pivotOffset;
 						}
 
 					} else {
@@ -362,13 +361,13 @@ public class Base : MonoBehaviour {
 						}
 					}
 				}
-			} else {
+			// } else {
 				// If nothing is targeted, rotate the view
-				if (!cameraMoving) {
+				// if (!cameraMoving) {
 					// cameraRotation += -mx * 8;
 					// RotateCameraBy(mx * 8);
-				}
-			}
+				// }
+			// }
 
 			lastX = Input.mousePosition.x;
 			lastY = Input.mousePosition.y;
@@ -378,7 +377,7 @@ public class Base : MonoBehaviour {
 		if (Input.GetMouseButtonUp(0)) {
 			dragLock = false;
 
-			if (target) {
+			// if (target) {
 				bool moved = false;
 				// Vector3 offset;
 				float pX = posX, pY = posY;
@@ -390,7 +389,7 @@ public class Base : MonoBehaviour {
 					if (TestPosition(pX, pY)) {
 						posX = pX;
 						pivot.transform.position += transform.right;
-						target.transform.Rotate(-transform.forward, 90, Space.World);
+						token.transform.Rotate(-transform.forward, 90, Space.World);
 						moved = true;
 					}
 				}
@@ -399,7 +398,7 @@ public class Base : MonoBehaviour {
 					if (TestPosition(pX, pY)) {
 						posX = pX;
 						pivot.transform.position -= transform.right;
-						target.transform.Rotate(transform.forward, 90, Space.World);
+						token.transform.Rotate(transform.forward, 90, Space.World);
 						moved = true;
 					}
 				}
@@ -408,7 +407,7 @@ public class Base : MonoBehaviour {
 					if (TestPosition(pX, pY)) {
 						posY = pY;
 						pivot.transform.position += transform.forward;
-						target.transform.Rotate(transform.right, 90, Space.World);
+						token.transform.Rotate(transform.right, 90, Space.World);
 						moved = true;
 					}
 				}
@@ -417,23 +416,26 @@ public class Base : MonoBehaviour {
 					if (TestPosition(pX, pY)) {
 						posY = pY;
 						pivot.transform.position -= transform.forward;
-						target.transform.Rotate(-transform.right, 90, Space.World);
+						token.transform.Rotate(-transform.right, 90, Space.World);
 						moved = true;
 					}
 				}
 
 				pivot.transform.position -= pivotOffset;
-				target.transform.position += pivotOffset;
+				// target.transform.position += pivotOffset;
 				pivot.transform.localPosition = new Vector3(posX, 0, posY);
-				target.transform.localPosition = new Vector3(0, 0, 0);
+				token.transform.localPosition = new Vector3(0, 0, 0);
 
 				if (moved) {
 					SetPosition(pivot.transform.position.x, pivot.transform.position.z);
 					SetMoves(moves + 1);
+
 					// TestWin();
 				}
-			}
+			// }
 			target = null;
+			ResetPivot();
+			rotSave = pivot.transform.rotation;
 		}
 
 	}

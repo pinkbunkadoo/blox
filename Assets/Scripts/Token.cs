@@ -67,9 +67,10 @@ public class Token : MonoBehaviour {
 			// }
 		} else if (state == 1) {
 			t += 1f * Time.deltaTime;
-			var a = Mathf.Lerp(1.0f, 0f, t*t);
+			// var a = Mathf.Lerp(1.0f, 0f, t*t);
+			var a = 1 - t;
 			gameObject.transform.localScale = new Vector3(a, a, a);
-			gameObject.transform.Rotate(Vector3.up * t * 10, Space.World);
+			gameObject.transform.Rotate(Vector3.up, 320 * Time.deltaTime, Space.World);
 			if (t >= 1) {
 				state = 0;
 				gameObject.transform.localScale = new Vector3(1, 1, 1);
