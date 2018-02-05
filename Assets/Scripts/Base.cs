@@ -5,12 +5,19 @@ using UnityEngine.UI;
 
 public class Base : MonoBehaviour {
 
-	public GameObject pivot;
-	public GameObject token;
-	// public GameObject glowPrefab;
-	GameObject sphere;
-
 	public GameObject startPosition;
+	public GameObject pivot;
+	public Condition[] conditions;
+	public GameObject cameraFocus;
+
+	Vector3 cameraFocalPoint;
+	
+	GameObject token;
+
+	GameObject position;
+
+	GameObject area;
+
 
 	// int mapWidth = 5;
 	// int mapHeight = 5;
@@ -29,93 +36,96 @@ public class Base : MonoBehaviour {
 
 	float posX = 0;
 	float posY = 0;
-
 	float lastX = 0;
 	float lastY = 0;
 	float dx = 0;
 	float dy = 0;
-
-	// float baseRotation = 0;
 	float xRotation = 0;
 	float zRotation = 0;
-
-	// float f = 0;
-	// float rotX = 0;
-	// float rotZ = 0;
-
-	bool dragLock = false;
-
 	float dragX = 0;
 	float dragZ = 0;
+	bool dragLock = false;
 
 	GameObject target;
 	Vector3 targetPos;
 	Quaternion targetRotation;
 	Quaternion rotSave;
 
-	// UnityEngine.Plane targetPlane;
-
-	// Vector3 dragDirection;
-
 	GameObject message;
 
-	Transform parent;
+	// Transform parent;
 
-	// Vector3 rotPoint;
 	Vector3 pivotOffset;
 
-	Vector3 focus;
 
 	bool finished = false;
 
+	// Vector3 focus;
+	// Transform cameraFocus;
 	GameObject cameraPivot;
 	float cameraRotation = -45;
+	bool cameraMoving = false;
+	Vector3 cameraMoveVelocity = Vector3.zero;
 
 	float t = 0;
 
 	void RotateCameraBy(float deg) {
 		// print("RotateCameraBy " + deg);
 		cameraPivot.transform.Rotate(Vector3.up, deg);
-		Camera.main.transform.LookAt(focus);
+		Camera.main.transform.LookAt(cameraFocus.transform.position);
+	}
+
+	public void SetCameraFocus(GameObject go) {
+		// print(go.transform.TransformPoint(0, 0, 0));
+		// print("SetCameraFocus " + go);
+		cameraFocus = go;
+		// cameraFocus.transform.position -= new Vector3(0, -0.6f, 0);
+		cameraFocalPoint = cameraFocus.transform.position - new Vector3(0, -0.6f, 0);
+		// cameraPivot.transform.position = cameraFocus.transform.position;
 	}
 
 	void ResetCamera() {
-		// print("ResetCamera");
+		// focus = new Vector3(0, -0.6f, 0);
+		SetCameraFocus(startPosition);
+		cameraPivot.transform.position = cameraFocalPoint;
 		cameraRotation = -45;
 		cameraPivot.transform.rotation = Quaternion.identity;
 		Camera.main.transform.rotation = Quaternion.identity;
 		Camera.main.transform.position = new Vector3(0, 12, -12);
 		RotateCameraBy(-cameraRotation);
+		cameraMoving = false;
 	}
 
 	// Test 2d grid coordinate position for valid move
 	bool TestPosition(float x, float y) {
 		RaycastHit hit;
-
 		Vector3 p = new Vector3(x, 0, y);
-
 		if (Physics.Raycast(p, -Vector3.up, out hit, 1f)) {
-			if (hit.transform.CompareTag("Trigger")) {
-			} else if (hit.transform.CompareTag("Tile")) {
+			if (hit.transform.CompareTag("Tile")) {
+
+			} else if (hit.transform.CompareTag("TileSymbol")) {
+				
+			} else if (hit.transform.CompareTag("TileExit")) {
+
 			} else {
+
 			}
 			return true;
 		} else { // No tile found
 		}
 		return false;
-
 	}
 
 	void SetPosition(float x, float y) {
 		RaycastHit hit;
-
 		Vector3 p = new Vector3(x, 0, y);
 
 		if (Physics.Raycast(p, -Vector3.up, out hit, 1f)) {
-			// bool activate = false;
-			if (hit.transform.CompareTag("Trigger")) {
+			if (hit.transform.CompareTag("Tile")) {
+
+			} else if (hit.transform.CompareTag("TileSymbol")) {
 				GameObject go = hit.transform.gameObject;
-				int value = go.GetComponent<Trigger>().value;
+				int value = go.GetComponent<TileSymbol>().value;
 				int side = 0;
 
 				if (Mathf.Round(token.transform.up.y) == -1) { // 1
@@ -138,44 +148,63 @@ public class Base : MonoBehaviour {
 				}
 
 				if (value == side) {
-					if (go.GetComponent<Trigger>().SetActive(true)) {
-						// activate = true;
+					if (go.GetComponent<TileSymbol>().lit == false) {
+						go.GetComponent<TileSymbol>().SetLight(true);
 						token.GetComponent<Token>().Flash();
+						// activated = true;
 					}
 				}
+			} else if (hit.transform.CompareTag("TileExit")) {
+				Won();
 			}
-			// if (activate) {
+			// token.GetComponent<Token>().SetGlow(activated);
+			// if (activated) {
 			// 	token.GetComponent<Token>().LightOn();
 			// } else {
 			// 	token.GetComponent<Token>().LightOff();
 			// }
-			sphere.transform.position = new Vector3(x, 0, y);
-			SetMoves(moves + 1);
+			position.transform.position = new Vector3(x, 0, y);
+			if (area != hit.transform.parent.gameObject) {
+				area = hit.transform.parent.gameObject;
+				var focus = area.transform.Find("focus");
+				if (focus) {
+					SetCameraFocus(focus.gameObject);
+				}
+			}
+
+			// SetCameraFocus(pivot);
+			TestConditions();
 		}
 	}
 
+
 	public void SetMoves(int value) {
 		moves = value;
-		GameObject.Find("Canvas/Moves").GetComponent<Text>().text = "Moves: " + moves;
+		GameObject.Find("Canvas/Moves").GetComponent<Text>().text = "" + moves;
 	}
 
 	public void Reset() {
-		GameObject[] trigs = GameObject.FindGameObjectsWithTag("Trigger");
+		GameObject[] trigs = GameObject.FindGameObjectsWithTag("TileSymbol");
 		foreach (GameObject element in trigs) {
-			element.GetComponent<Trigger>().SetActive(false);
+			element.GetComponent<TileSymbol>().SetLight(false);
 		}
 
 		pivot.transform.position = startPosition.transform.position;
 		pivot.transform.rotation = Quaternion.identity;
 		token.transform.rotation = Quaternion.identity;
+
 		posX = pivot.transform.localPosition.x;
 		posY = pivot.transform.localPosition.z;
-		sphere.transform.position = new Vector3(posX, 0, posY);
+		// position.transform.position = new Vector3(posX, 0, posY);
 		token.GetComponent<Token>().Spawn();
 
+		SetPosition(0, 0);
+		// SetCameraFocus(pivot);
+
 		ResetCamera();
-		SetMoves(0);
+		// SetMoves(0);
 		finished = false;
+		SetMoves(0);
 
 		showMessage("STAGE 01");
 	}
@@ -187,15 +216,27 @@ public class Base : MonoBehaviour {
 	}
 
 	void TestWin() {
-		bool done = true;
-		GameObject[] triggers = GameObject.FindGameObjectsWithTag("Trigger");
-		foreach (GameObject element in triggers) {
-			if (!element.GetComponent<Trigger>().active) {
-				done = false;
-				break;
+		// bool done = true;
+		// GameObject[] triggers = GameObject.FindGameObjectsWithTag("Trigger");
+		// foreach (GameObject element in triggers) {
+		// 	if (!element.GetComponent<Trigger>().lit) {
+		// 		done = false;
+		// 		break;
+		// 	}
+		// }
+		// if (done) Won();
+	}
+
+	public void TestConditions() {
+		foreach(Condition condition in conditions) {
+			if (condition.IsMet()) {
+				// condition.target.SetActive(true);
+				condition.target.SendMessage("Show");
+			} else {
+				condition.target.SendMessage("Hide");
+				// condition.target.SetActive(false);
 			}
 		}
-		if (done) Won();
 	}
 
 	void showMessage(string msg, bool fade=true) {
@@ -215,12 +256,11 @@ public class Base : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		// token = GameObject.FindWithTag("Token");
-		sphere = GameObject.Find("Sphere");
-		cameraPivot = GameObject.Find("CameraPivot");
-		parent = pivot.transform.parent;
-		focus = new Vector3(0, -0.6f, 0);
-
+		token = pivot.transform.GetChild(0).gameObject;
+		position = new GameObject("Position");
+		position.transform.position = new Vector3(0, 0, 0);
+		cameraPivot = Camera.main.transform.parent.gameObject; //GameObject.Find("CameraPivot");
+		// parent = pivot.transform.parent;
 		message = GameObject.Find("Canvas/Message");
 		Reset();
 	}
@@ -229,19 +269,13 @@ public class Base : MonoBehaviour {
 		float mx = Input.GetAxis("Mouse X");
 		float my = Input.GetAxis("Mouse Y");
 
-		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		RaycastHit hit;
-		bool hitSomething = Physics.Raycast(ray, out hit, 100);
-
 		// Test whether user has clicked token
 		if (Input.GetMouseButtonDown(0)) {
-			// baseRotation = 0;
-			// Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-			// RaycastHit hit;
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			RaycastHit hit;
+			bool hitSomething = Physics.Raycast(ray, out hit, 100);
 			if (hitSomething) {
-				// if (hit.transform.CompareTag("Token") && hit.normal == Vector3.up) {
 				if (hit.transform.CompareTag("Token")) {
-					print(hit.transform);
 					ResetPivot();
 					rotSave = pivot.transform.rotation;
 					target = token;
@@ -274,10 +308,10 @@ public class Base : MonoBehaviour {
 						float _x = dir.x;
 						float _z = dir.z;
 
-						Vector3 temp = sphere.transform.position + new Vector3(
-							Mathf.Abs(_x) > Mathf.Abs(_z) ? Mathf.Sign(_x) : 0,
+						Vector3 temp = position.transform.position + new Vector3(
+							Mathf.Abs(_x) >= Mathf.Abs(_z) ? Mathf.Sign(_x) : 0,
 							0,
-							Mathf.Abs(_z) > Mathf.Abs(_x) ? Mathf.Sign(_z) : 0);
+							Mathf.Abs(_z) >= Mathf.Abs(_x) ? Mathf.Sign(_z) : 0);
 
 						if (TestPosition(temp.x, temp.z)) {
 							dragLock = false;
@@ -285,29 +319,30 @@ public class Base : MonoBehaviour {
 							dragLock = true;
 						}
 
+						// GameObject.Find("Canvas/Text2").GetComponent<Text>().text = "" + dir;
+
 						if (dragLock == false) {
 							pivotOffset = new Vector3(0, 0, 0);
-
 							if (Mathf.Abs(dir.x) > Mathf.Abs(dir.z)) {
 								dragX = dir.x > 0 ? 1 : -1;
 								if (dir.x > 0) {
-									pivotOffset = parent.transform.right * cubeHalfSize;
+									pivotOffset = transform.right * cubeHalfSize;
 								}
 								else {
-									pivotOffset = parent.transform.right * -cubeHalfSize;
+									pivotOffset = transform.right * -cubeHalfSize;
 								}
 							}
 							else {
 								dragZ = dir.z > 0 ? 1 : -1;
 								if (dir.z > 0) {
-									pivotOffset = parent.transform.forward * cubeHalfSize;
+									pivotOffset = transform.forward * cubeHalfSize;
 								}
 								else {
-									pivotOffset = -parent.transform.forward * cubeHalfSize;
+									pivotOffset = -transform.forward * cubeHalfSize;
 								}
 							}
 
-							pivotOffset += -parent.transform.up * cubeHalfSize;
+							pivotOffset += -transform.up * cubeHalfSize;
 							pivot.transform.position += pivotOffset;
 							target.transform.position -= pivotOffset;
 						}
@@ -334,8 +369,10 @@ public class Base : MonoBehaviour {
 				}
 			} else {
 				// If nothing is targeted, rotate the view
-				cameraRotation += -mx * 8;
-				RotateCameraBy(mx * 8);
+				if (!cameraMoving) {
+					// cameraRotation += -mx * 8;
+					// RotateCameraBy(mx * 8);
+				}
 			}
 
 			lastX = Input.mousePosition.x;
@@ -357,8 +394,8 @@ public class Base : MonoBehaviour {
 					pX++;
 					if (TestPosition(pX, pY)) {
 						posX = pX;
-						pivot.transform.position += parent.right;
-						target.transform.Rotate(-parent.forward, 90, Space.World);
+						pivot.transform.position += transform.right;
+						target.transform.Rotate(-transform.forward, 90, Space.World);
 						moved = true;
 					}
 				}
@@ -366,8 +403,8 @@ public class Base : MonoBehaviour {
 					pX--;
 					if (TestPosition(pX, pY)) {
 						posX = pX;
-						pivot.transform.position -= parent.right;
-						target.transform.Rotate(parent.forward, 90, Space.World);
+						pivot.transform.position -= transform.right;
+						target.transform.Rotate(transform.forward, 90, Space.World);
 						moved = true;
 					}
 				}
@@ -375,8 +412,8 @@ public class Base : MonoBehaviour {
 					pY++;
 					if (TestPosition(pX, pY)) {
 						posY = pY;
-						pivot.transform.position += parent.forward;
-						target.transform.Rotate(parent.right, 90, Space.World);
+						pivot.transform.position += transform.forward;
+						target.transform.Rotate(transform.right, 90, Space.World);
 						moved = true;
 					}
 				}
@@ -384,8 +421,8 @@ public class Base : MonoBehaviour {
 					pY--;
 					if (TestPosition(pX, pY)) {
 						posY = pY;
-						pivot.transform.position -= parent.forward;
-						target.transform.Rotate(-parent.right, 90, Space.World);
+						pivot.transform.position -= transform.forward;
+						target.transform.Rotate(-transform.right, 90, Space.World);
 						moved = true;
 					}
 				}
@@ -397,8 +434,8 @@ public class Base : MonoBehaviour {
 
 				if (moved) {
 					SetPosition(pivot.transform.position.x, pivot.transform.position.z);
-					// sphere.transform.position = new Vector3(pivot.transform.position.x, 0, pivot.transform.position.z);
-					TestWin();
+					SetMoves(moves + 1);
+					// TestWin();
 				}
 			}
 			target = null;
@@ -412,12 +449,20 @@ public class Base : MonoBehaviour {
 			Step();
 		} else {
 			if (t != 0) {
-				t -= 1f * Time.deltaTime;
+				t -= 2f * Time.deltaTime;
 				if (t <= 0) {
 					t = 0;
 					token.GetComponent<Token>().Gone();
 				}
 			}
+		}
+		if (cameraPivot.transform.position != cameraFocalPoint) {
+			cameraMoving = true;
+			// float step = 1 * Time.deltaTime;
+			// cameraPivot.transform.position = Vector3.MoveTowards(cameraPivot.transform.position, cameraFocalPoint, step);
+			var pos = Vector3.SmoothDamp(cameraPivot.transform.position, cameraFocalPoint, ref cameraMoveVelocity, 0.5f);
+			cameraPivot.transform.position = pos;
+			if (cameraPivot.transform.position == cameraFocalPoint) cameraMoving = false;
 		}
 	}
 
