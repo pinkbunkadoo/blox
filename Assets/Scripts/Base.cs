@@ -204,12 +204,12 @@ public class Base : MonoBehaviour {
 		finished = false;
 		SetMoves(0);
 
-		ShowMessage("STAGE");
+		DisplayNotice("STAGE");
 	}
 
 	void Won() {
 		finished = true;
-		ShowMessage("STAGE CLEAR!", false);
+		DisplayNotice("STAGE CLEAR!", false);
 		t = 1;
 	}
 
@@ -237,11 +237,11 @@ public class Base : MonoBehaviour {
 		}
 	}
 
-	void ShowMessage(string msg, bool fade=true) {
-		StartCoroutine (ShowMessageNow(msg));
+	void DisplayNotice(string msg, bool fade=true) {
+		StartCoroutine (DisplayNoticeNow(msg));
 	}
 
-	public IEnumerator ShowMessageNow(string msg) {
+	public IEnumerator DisplayNoticeNow(string msg) {
 		GameObject goBackground = canvas.transform.Find("Background").gameObject;
 		GameObject goText = canvas.transform.Find("Text").gameObject;
 		Graphic image = goBackground.GetComponent<Image>();
@@ -326,7 +326,6 @@ public class Base : MonoBehaviour {
 		movesText.fontStyle = FontStyle.Bold;
 		movesText.enabled = true;
 
-
 		this.canvas = go;
 	}
 
@@ -336,8 +335,6 @@ public class Base : MonoBehaviour {
 		position = new GameObject("Position");
 		position.transform.position = new Vector3(0, 0, 0);
 		cameraPivot = Camera.main.transform.parent.gameObject;
-		// message = GameObject.Find("Canvas/Message");
-		// message = GUI.Label(new Rect(0, 100, 300, 100), "Label");
 		CreateCanvas();
 		Reset();
 	}
