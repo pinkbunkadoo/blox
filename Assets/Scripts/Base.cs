@@ -301,7 +301,7 @@ public class Base : MonoBehaviour {
 		text.verticalOverflow = VerticalWrapMode.Overflow;
 		text.font = (Font) Resources.GetBuiltinResource (typeof(Font), "Arial.ttf");
 		text.fontSize = 36;
-		text.fontStyle = FontStyle.Bold;
+		// text.fontStyle = FontStyle.Bold;
 		text.enabled = true;
 
 		GameObject goMovesText = new GameObject("MovesText");
@@ -323,7 +323,7 @@ public class Base : MonoBehaviour {
 		movesText.verticalOverflow = VerticalWrapMode.Overflow;
 		movesText.font = (Font) Resources.GetBuiltinResource (typeof(Font), "Arial.ttf");
 		movesText.fontSize = 48;
-		movesText.fontStyle = FontStyle.Bold;
+		// movesText.fontStyle = FontStyle.Bold;
 		movesText.enabled = true;
 
 		this.canvas = go;
@@ -340,8 +340,13 @@ public class Base : MonoBehaviour {
 	}
 
 	void Step() {
-		float mx = Input.GetAxis("Mouse X");
-		float my = Input.GetAxis("Mouse Y");
+		// float mx = Input.GetAxis("Mouse X");
+		// float my = Input.GetAxis("Mouse Y");
+		// float mx = Input.GetAxisRaw("Mouse X") * Time.deltaTime * 100;
+		// float my = Input.GetAxisRaw("Mouse Y") * Time.deltaTime * 100;
+
+		float cursorX = Input.mousePosition.x;
+		float cursorY = Input.mousePosition.y;
 
 		// Test whether user has clicked token
 		if (Input.GetMouseButtonDown(0)) {
@@ -355,8 +360,8 @@ public class Base : MonoBehaviour {
 				// 	target = null;
 				// }
 			}
-			lastX = Input.mousePosition.x;
-			lastY = Input.mousePosition.y;
+			lastX = cursorX;
+			lastY = cursorY;
 		}
 
 		// If the left mouse button is depressed, either update the token (if selected) or rotate the view around the board
@@ -366,8 +371,8 @@ public class Base : MonoBehaviour {
 			float sin = Mathf.Sin(angle * Mathf.Deg2Rad);
 			float cos = Mathf.Cos(angle * Mathf.Deg2Rad);
 
-			dx = dx + Input.mousePosition.x - lastX;
-			dy = dy + Input.mousePosition.y - lastY;
+			dx = dx + cursorX - lastX;
+			dy = dy + cursorY - lastY;
 
 			// if (target) {
 				if (dragLock == false) {
@@ -421,11 +426,16 @@ public class Base : MonoBehaviour {
 						}
 
 					} else {
-						if (dragLock == false) {
-							float rx = mx * cos - my * sin;
-							float ry = mx * sin + my * cos;
+						float deltaX = (cursorX - lastX) * 0.03f;
+						float deltaY = (cursorY - lastY) * 0.03f;
 
-							if (mx != 0 || my != 0) {
+						if (dragLock == false) {
+							// float rx = mx * cos - my * sin;
+							// float ry = mx * sin + my * cos;
+							float rx = deltaX * cos - deltaY * sin;
+							float ry = deltaX * sin + deltaY * cos;
+
+							if (deltaX != 0 || deltaY != 0) {
 								if (dragX != 0) {
 									zRotation += rx * 10f;
 									zRotation = dragX > 0 ? Mathf.Clamp(zRotation, 0, 90) : Mathf.Clamp(zRotation, -90, 0);
@@ -448,8 +458,8 @@ public class Base : MonoBehaviour {
 				// }
 			// }
 
-			lastX = Input.mousePosition.x;
-			lastY = Input.mousePosition.y;
+			// lastX = Input.mousePosition.x;
+			// lastY = Input.mousePosition.y;
 		}
 
 		// When the left button is released, test whether the token can move in the chosen direction
@@ -522,6 +532,9 @@ public class Base : MonoBehaviour {
 			pivotOffset = new Vector3(0, 0, 0);
 			rotSave = pivot.transform.rotation;
 		}
+
+		lastX = cursorX;
+		lastY = cursorY;
 
 	}
 	
