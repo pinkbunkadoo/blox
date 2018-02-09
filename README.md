@@ -2,9 +2,9 @@
 
 An early prototype for a 3d puzzle game.
 
-## Installation
+## How to play?
 
-Open the project in Unity to run the prototype.
+Open the project in Unity to run the prototype or play the webGL version at http://pinkbunkadoo.github.io/omni/.
 
 ## Instructions
 
