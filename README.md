@@ -2,11 +2,11 @@
 
 An early prototype for a 3d puzzle game.
 
-## How to play?
+## How do I try it?
 
-Open the project in Unity to run the prototype or play the webGL version at http://pinkbunkadoo.github.io/omni/.
+Open the project in Unity or play the webGL version at http://pinkbunkadoo.github.io/omni/.
 
-## Instructions
+## How do I play?
 
 - Drag the view to roll the cube - it will attempt to roll in the direction you drag.
 - Roll onto symbol tiles to activate them.
